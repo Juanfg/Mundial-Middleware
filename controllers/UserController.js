@@ -6,7 +6,9 @@ module.exports = function(app) {
 
     let UserController = {
         index: function(req, res) {
-            User.findAll({})
+            User.findAll({
+                order: [ [Sequelize.col('points'), 'DESC'] ]
+            })
             .then(function(users) {
                 winston.log('Success at getting all the users in the DB');
                 res.status(200).json(users);
@@ -17,7 +19,7 @@ module.exports = function(app) {
             });
         },
 
-        create: function(req, res) {
+        register: function(req, res) {
             User.create({
                 name: req.body.name || null,
                 email: req.body.email || null,
@@ -26,7 +28,47 @@ module.exports = function(app) {
             })
             .then(newUser => {
                 winston.log('Created a new user');
-                res.status(200).json(newUser);
+                res.status(200).json({
+                    data: newUser,
+                    token: newUser.generateToken()
+                });
+            })
+            .catch(err => {
+                winston.error(err);
+                res.json(err);
+            });
+        },
+
+        login: function(req, res) {
+            User.find({
+                where: { email: req.body.email }
+            })
+            .then(user => {
+                if (!user) {
+                    return res.status(401).json({
+                        message: `User doesn't exist`
+                    });
+                }
+
+                user.verifyPassword(req.body.password, function(err, isMatch) {
+                    if (err) {
+                        return res.status(500).json({
+                            message: `Errory trying to verify password ${err}`
+                        });
+                    }
+
+                    if (!isMatch) {
+                        return res.status(401).json({
+                            message: `Invalid credentials, password doesn't match`
+                        });
+                    }
+
+                    return res.status(200).json({
+                        message: 'OK',
+                        data: user,
+                        token: user.generateToken()
+                    });
+                });
             })
             .catch(err => {
                 winston.error(err);
