@@ -23,7 +23,7 @@ module.exports = function(app) {
 
     // Teams routes
     app.route('/api/teams')
-        .get(passport.authenticate('jwt', { session: false }), teamCtrl.index)
+        .get(teamCtrl.index)
         .post(teamCtrl.create);
     app.route('/api/teams/:teamId')
         .get(teamCtrl.view)
@@ -32,12 +32,16 @@ module.exports = function(app) {
 
     // Matches routes
     app.route('/api/matches')
-        .get(matchCtrl.index)
-        .post(matchCtrl.create);
+        .get(passport.authenticate('jwt', { session:false }), matchCtrl.index)
+        .post(passport.authenticate('jwt', { session:false }), matchCtrl.create);
     app.route('/api/matches/:matchId')
-        .get(matchCtrl.view)
-        .put(matchCtrl.update)
-        .delete(matchCtrl.delete);
+        .get(passport.authenticate('jwt', { session:false }), matchCtrl.view)
+        .put(passport.authenticate('jwt', { session:false }), matchCtrl.update)
+        .delete(passport.authenticate('jwt', { session:false }), matchCtrl.delete);
+    app.route('/api/matches/activate/:matchId')
+        .put(passport.authenticate('jwt', { session: false }), matchCtrl.activate);
+    app.route('/api/matches/deactivate/:matchId')
+        .put(passport.authenticate('jwt', { session: false }), matchCtrl.deactivate);
 
     // Groups routes
     app.route('/api/groups')
@@ -50,12 +54,17 @@ module.exports = function(app) {
 
     // Bets routes
     app.route('/api/bets')
-        .get(betCtrl.index)
-        .post(betCtrl.create);
+        .get(passport.authenticate('jwt', { session:false }), betCtrl.index)
+        .post(passport.authenticate('jwt', { session:false }), betCtrl.create);
     app.route('/api/bets/:betId')
-        .get(betCtrl.view)
-        .put(betCtrl.update)
-        .delete(betCtrl.delete);
+        .get(passport.authenticate('jwt', { session:false }), betCtrl.view)
+        .put(passport.authenticate('jwt', { session:false }), betCtrl.update)
+        .delete(passport.authenticate('jwt', { session:false }), betCtrl.delete);
+    app.route('/api/bets/user/:userId')
+        .get(passport.authenticate('jwt', { session: false }), betCtrl.viewByUser);
+
+    app.route('/api/admin/calculateResults')
+        .post(passport.authenticate('jwt', { session: false }), betCtrl.calculate);
 
     app.get('*', function(req, res) {
         res.json({ message: 'Tanda Mundial Backend' });

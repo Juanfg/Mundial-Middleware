@@ -23,10 +23,12 @@ module.exports = {
         }
       },
       team_a_score: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       team_b_score: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
       points: {
         type: Sequelize.INTEGER,

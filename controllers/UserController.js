@@ -1,13 +1,17 @@
 const Sequelize = require('sequelize');
 const winston = require('winston');
+const bcrypt = require('bcrypt');
 
 module.exports = function(app) {
     let User = app.models.schema.User;
+    let Match = app.models.schema.Match;
+    let Bet = app.models.schema.Bet;
 
     let UserController = {
         index: function(req, res) {
             User.findAll({
-                order: [ [Sequelize.col('points'), 'DESC'] ]
+                order: [ [Sequelize.col('points'), 'DESC'] ],
+                include: [{ all: true }]
             })
             .then(function(users) {
                 winston.log('Success at getting all the users in the DB');
@@ -23,15 +27,24 @@ module.exports = function(app) {
             User.create({
                 name: req.body.name || null,
                 email: req.body.email || null,
-                password: req.body.password || 'secret',
+                password: bcrypt.hashSync(req.body.password, 10) || bcrypt.hashSync('secret', 10),
                 photo_path: req.body.photo_path || null,
             })
-            .then(newUser => {
+            .then(async newUser => {
                 winston.log('Created a new user');
-                res.status(200).json({
-                    data: newUser,
-                    token: newUser.generateToken()
-                });
+                await Match.findAll({})
+                    .then(async matches => {
+                        for(let i = 0; i < matches.length; i++) {
+                            await Bet.create({
+                                user_id: newUser.id,
+                                match_id: matches[i].id
+                            })
+                        }
+                        res.status(200).json({
+                            data: newUser,
+                            token: newUser.generateToken()
+                        });
+                    })
             })
             .catch(err => {
                 winston.error(err);
@@ -45,8 +58,14 @@ module.exports = function(app) {
             })
             .then(user => {
                 if (!user) {
-                    return res.status(401).json({
+                    return res.status(400).json({
                         message: `User doesn't exist`
+                    });
+                }
+
+                if (!user.active) {
+                    return res.status(400).json({
+                        message: `Usuario no activo`
                     });
                 }
 
@@ -58,7 +77,7 @@ module.exports = function(app) {
                     }
 
                     if (!isMatch) {
-                        return res.status(401).json({
+                        return res.status(400).json({
                             message: `Invalid credentials, password doesn't match`
                         });
                     }
@@ -106,11 +125,13 @@ module.exports = function(app) {
                         .update({
                             name: req.body.name || user.name,
                             email: req.body.email || user.email,
-                            password: req.body.password || user.password,
+                            password: bcrypt.hashSync(req.body.password, 10) || user.password,
                             photo_path: req.body.photo_path || user.photo_path,
                             points: parseInt(req.body.points) || user.points
                         })
-                        .then(() => res.status(200).json(user))
+                        .then(() => {
+                            res.status(200).json(user) 
+                        })
                         .catch(err => {
                             res.status(400).json(err);
                         })

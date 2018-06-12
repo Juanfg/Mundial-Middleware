@@ -3,10 +3,24 @@ const winston = require('winston');
 
 module.exports = function(app) {
     let Bet = app.models.schema.Bet;
+    let Match = app.models.schema.Match;
+    let User = app.models.schema.User;
 
     let BetController = {
         index: function(req, res) {
-            Bet.findAll({})
+            Bet.findAll({ include: [{ all: true }] })
+            .then(function(betss) {
+                winston.log('Success at getting all the betss in the DB');
+                res.status(200).json(betss);
+            })
+            .catch(err => {
+                winston.error(err);
+                res.json(err);
+            });
+        },
+
+        viewByUser: function(req, res) {
+            Bet.findAll({ where: { user_id: req.params.userId }, include: [{ all: true }] })
             .then(function(betss) {
                 winston.log('Success at getting all the betss in the DB');
                 res.status(200).json(betss);
@@ -53,14 +67,14 @@ module.exports = function(app) {
 
         update: function(req, res) {
             Bet.findById(req.params.betId, {})
-                .then(bets => {
-                    if (!bets) {
+                .then(bet => {
+                    if (!bet) {
                         return res.status(404).json({
                             message: 'Bet Not Found'
                         });
                     }
 
-                    bets
+                    bet
                         .update({
                             user_id: req.body.user_id || bet.user_id,
                             match_id: req.body.match_id || bet.match_id,
@@ -68,7 +82,9 @@ module.exports = function(app) {
                             team_b_score: parseInt(req.body.team_b_score) || bet.team_b_score,
                             points: parseInt(req.body.points) || bet.points
                         })
-                        .then(() => res.status(200).json(bets))
+                        .then(() => {
+                            res.status(200).json(bet)
+                        })
                         .catch(err => {
                             res.status(400).json(err);
                         })
@@ -100,6 +116,46 @@ module.exports = function(app) {
                 })
                 .catch(err => {
                     res.json(err);
+                })
+        },
+
+        calculate: function(req, res) {
+            User.findAll({ where: [{ active: true }], include: [{ all: true }] })
+                .then(async users => {
+                    for (let i = 0; i < users.length; i++) {
+                        let points = 0;
+                        let b = users[i].bets;
+                        for (let j = 0; j < b.length; j++) {
+                            await Bet.findById(b[j].id, { include: [{ all: true }] })
+                                .then(async bet => {
+                                    console.log("uhuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu " + bet.user_id + " = " + bet.id);
+                                    if (!bet.match.active) {
+                                        console.log("kheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee " + bet.match.team_a_score + "   ----   " + bet.team_a_score);
+                                        if (bet.match.team_a_score == bet.team_a_score && bet.match.team_b_score == bet.team_b_score) {
+                                            points += 3;
+                                        }
+                                        else {
+                                            let a = bet.match.team_a_score - bet.match.team_b_score;
+                                            let b = bet.team_a_score - bet.team_b_score;
+                                            if (( a < 0 && b < 0 ) || ( a == 0 && b == 0 ) || (a > 0 && b > 0)) {
+                                                points += 1;
+                                            }
+                                        }
+                                    }
+                                })
+                                .catch(err => {
+                                    console.log(err);
+                                });
+                        }
+                        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa " + points)
+                        await users[i].update({
+                            points: points
+                        });
+                    }
+                    res.status(200).json({ message: "Points updated" })
+                })
+                .catch(err => {
+                    console.log(err);
                 })
         }
 

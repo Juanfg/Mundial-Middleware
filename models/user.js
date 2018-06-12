@@ -2,10 +2,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jwt-simple');
 const moment = require('moment');
 
-function encryptPasswordIfChanged(user, options) {
-  user.set('password', bcrypt.hashSync(user.password, 10));
-}
-
 module.exports = (sequelize, DataTypes) => {
   var User = sequelize.define('User', {
     name: DataTypes.STRING,
@@ -18,11 +14,11 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'Users'
   });
   User.associate = function(models) {
-    // associations can be defined here
+    User.hasMany(models.Bet, {
+      foreignKey: 'user_id',
+      as: 'bets'
+    });
   };
-
-  User.beforeCreate(encryptPasswordIfChanged);
-  User.beforeUpdate(encryptPasswordIfChanged);
 
   User.prototype.generateToken = function() {
     let expires = moment()
