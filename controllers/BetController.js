@@ -20,7 +20,11 @@ module.exports = function(app) {
         },
 
         viewByUser: function(req, res) {
-            Bet.findAll({ where: { user_id: req.params.userId }, include: [{ all: true }] })
+            Bet.findAll({ where: { user_id: req.params.userId }, include: [{ all: true }], 
+                order: [
+                    [ { model: Match, as: 'match' }, 'date', 'DESC' ]
+                ]
+            })
             .then(function(betss) {
                 winston.log('Success at getting all the betss in the DB');
                 res.status(200).json(betss);
@@ -128,9 +132,7 @@ module.exports = function(app) {
                         for (let j = 0; j < b.length; j++) {
                             await Bet.findById(b[j].id, { include: [{ all: true }] })
                                 .then(async bet => {
-                                    console.log("uhuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu " + bet.user_id + " = " + bet.id);
                                     if (!bet.match.active) {
-                                        console.log("kheeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee " + bet.match.team_a_score + "   ----   " + bet.team_a_score);
                                         if (bet.match.team_a_score == bet.team_a_score && bet.match.team_b_score == bet.team_b_score) {
                                             points += 3;
                                         }
@@ -147,7 +149,6 @@ module.exports = function(app) {
                                     console.log(err);
                                 });
                         }
-                        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa " + points)
                         await users[i].update({
                             points: points
                         });
