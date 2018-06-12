@@ -112,7 +112,11 @@ module.exports = function(app) {
                 })
         },
 
-        update: function(req, res) {
+        update: async function(req, res) {
+            let newPassword = null
+            if (req.body.password) {
+                 newPassword = await bcrypt.hashSync(req.body.password, 10);
+            }
             User.findById(req.params.userId, {})
                 .then(user => {
                     if (!user) {
@@ -125,7 +129,7 @@ module.exports = function(app) {
                         .update({
                             name: req.body.name || user.name,
                             email: req.body.email || user.email,
-                            password: bcrypt.hashSync(req.body.password, 10) || user.password,
+                            password: newPassword || user.password,
                             photo_path: req.body.photo_path || user.photo_path,
                             points: parseInt(req.body.points) || user.points
                         })
