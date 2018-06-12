@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const winston = require('winston');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 module.exports = function(app) {
     let User = app.models.schema.User;
