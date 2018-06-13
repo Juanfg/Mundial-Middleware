@@ -14,6 +14,8 @@ module.exports = function(app) {
         .get(userCtrl.view)
         .put(userCtrl.update)
         .delete(userCtrl.delete);
+    app.route('/api/users/activate/:userId')
+        .put(userCtrl.activate);
     
     // Authentication routes
     app.route('/api/auth/login')

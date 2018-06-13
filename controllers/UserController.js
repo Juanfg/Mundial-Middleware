@@ -169,6 +169,31 @@ module.exports = function(app) {
                 .catch(err => {
                     res.json(err);
                 })
+        },
+
+        activate: function(req, res) {
+            User.findById(req.params.userId)
+                .then(user => {
+                    if (!user) {
+                        return res.status(400).json({
+                            message: 'User Not Found'
+                        });
+                    }
+
+                    return user
+                        .update({
+                            active: true
+                        })
+                        .then(() => res.status(200).json({
+                            message: 'User is active now'
+                        }))
+                        .catch(err => {
+                            res.status(400).json(err);
+                        })
+                })
+                .catch(err => {
+                    res.json(err);
+                })
         }
 
     }
