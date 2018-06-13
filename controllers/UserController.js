@@ -11,6 +11,7 @@ module.exports = function(app) {
         index: function(req, res) {
             User.findAll({
                 order: [ [Sequelize.col('points'), 'DESC'] ],
+                where: [{ active: true }],
                 include: [{ all: true }]
             })
             .then(function(users) {
