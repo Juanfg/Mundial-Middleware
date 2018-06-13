@@ -5,6 +5,7 @@ module.exports = function(app) {
     let Bet = app.models.schema.Bet;
     let Match = app.models.schema.Match;
     let User = app.models.schema.User;
+    let Team = app.models.schema.Team;
 
     let BetController = {
         index: function(req, res) {
@@ -108,11 +109,9 @@ module.exports = function(app) {
                     }
 
                     return bets
-                        .update({
-                            active: false
-                        })
+                        .destroy()
                         .then(() => res.status(200).json({
-                            message: 'Bet is unactive now'
+                            message: 'Deleted'
                         }))
                         .catch(err => {
                             res.status(400).json(err);
@@ -158,6 +157,40 @@ module.exports = function(app) {
                 .catch(err => {
                     console.log(err);
                 })
+        },
+
+        betsWithMatches: function(req, res) {
+
+            let allTeams = Array.apply(null, Array(50)).map(function () {})
+            Team.findAll()
+                .then(teams => {
+                    for (let i = 0; i < teams.length; i++) {
+                        allTeams[teams[i].id] = teams[i]
+                    }
+                    Bet.findAll({ where: { user_id: req.params.userId }, include: [{ all: true }], 
+                        order: [
+                            [ { model: Match, as: 'match' }, 'date', 'DESC' ]
+                        ]
+                    })
+                    .then(function(bets) {
+                        let match = {};
+                        for (let i = 0; i < bets.length; i++) {
+                            match = bets[i].match;
+                            bets[i].match.team_a = allTeams[match.team_a];
+                            bets[i].match.team_b = allTeams[match.team_b];
+                        }
+                        return res.send(bets);
+                    })
+                    .catch(err => {
+                        winston.error(err);
+                        res.json(err);
+                    });
+                })
+                .catch(err => {
+                    res.json(err);
+                });
+
+            
         }
 
     }
