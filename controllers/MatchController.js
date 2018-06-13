@@ -74,16 +74,31 @@ module.exports = function(app) {
                             message: 'Match Not Found'
                         });
                     }
-
+                    let a_score = null;
+                    let b_score = null;
+                    if (req.body.team_a_score != null) {
+                        a_score = parseInt(req.body.team_a_score);
+                    }
+                    else {
+                        a_score = match.team_a_score;
+                    }
+                    if (req.body.team_b_score != null) {
+                        b_score = parseInt(req.body.team_b_score)
+                    }
+                    else {
+                        a_score = match.team_b_score;
+                    }
                     match
                         .update({
                             team_a: req.body.team_a || match.team_a,
                             team_b: req.body.team_b || match.team_b,
-                            team_a_score: parseInt(req.body.team_a_score) || match.team_a_score,
-                            team_b_score: parseInt(req.body.team_b_score) || match.team_b_score,
+                            team_a_score: a_score,
+                            team_b_score: b_score,
                             date: req.body.date || match.date
                         })
-                        .then(() => res.status(200).json(match))
+                        .then(() => {
+                            res.status(200).json(match)
+                        })
                         .catch(err => {
                             res.status(400).json(err);
                         })
@@ -163,6 +178,36 @@ module.exports = function(app) {
                 })
                 .catch(err => {
                     res.json(err);
+                })
+        },
+
+        deactivateAll: function(req, res) {
+            Match.findAll({})
+                .then(async matches => {
+                    for (let i = 0; i < matches.length; i++) {
+                        matches[i].update({
+                            active: false
+                        });
+                    }
+                    res.status(200).json(matches);
+                })
+                .catch(err => {
+                    res.status(400).json(err);
+                })
+        },
+
+        activateAll: function(req, res) {
+            Match.findAll({})
+                .then(async matches => {
+                    for (let i = 0; i < matches.length; i++) {
+                        matches[i].update({
+                            active: true
+                        });
+                    }
+                    res.status(200).json(matches);                    
+                })
+                .catch(err => {
+                    res.status(400).json(err);
                 })
         }
 

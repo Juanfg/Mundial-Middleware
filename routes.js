@@ -44,6 +44,10 @@ module.exports = function(app) {
         .put(passport.authenticate('jwt', { session: false }), matchCtrl.activate);
     app.route('/api/matches/deactivate/:matchId')
         .put(passport.authenticate('jwt', { session: false }), matchCtrl.deactivate);
+    app.route('/api/matchesDeactivateAll')
+        .put(passport.authenticate('jwt', { session: false }), matchCtrl.deactivateAll);
+    app.route('/api/matchesActivateAll')
+        .put(passport.authenticate('jwt', { session: false }), matchCtrl.activateAll);
 
     // Groups routes
     app.route('/api/groups')
