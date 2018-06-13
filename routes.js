@@ -64,7 +64,8 @@ module.exports = function(app) {
         .get(passport.authenticate('jwt', { session: false }), betCtrl.viewByUser);
     app.route('/api/betsWithMatches/user/:userId')
         .get(passport.authenticate('jwt', { session: false }), betCtrl.betsWithMatches);
-
+    app.route('/api/updateAllBets')
+        .put(passport.authenticate('jwt', { session: false }), betCtrl.updateAll);
     app.route('/api/admin/calculateResults')
         .post(passport.authenticate('jwt', { session: false }), betCtrl.calculate);
 

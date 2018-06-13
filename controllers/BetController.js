@@ -160,7 +160,6 @@ module.exports = function(app) {
         },
 
         betsWithMatches: function(req, res) {
-
             let allTeams = Array.apply(null, Array(50)).map(function () {})
             Team.findAll()
                 .then(teams => {
@@ -189,8 +188,23 @@ module.exports = function(app) {
                 .catch(err => {
                     res.json(err);
                 });
+        },
 
-            
+        updateAll: async function(req, res) {
+            let allBetsFromUser = req.body.bets;
+            for (let i = 0; i < allBetsFromUser.length; i++) {
+                await Bet.findById(allBetsFromUser[i].id)
+                    .then(async bet => {
+                        await bet.update({
+                            team_a_score: parseInt(allBetsFromUser[i].team_a_score),
+                            team_b_score: parseInt(allBetsFromUser[i].team_b_score)
+                        });
+                    })
+                    .catch(err =>{
+                        res.send(err);
+                    });
+            }
+            res.status(200).json({ message: 'Updated' });
         }
 
     }
