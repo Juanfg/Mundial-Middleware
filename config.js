@@ -1,10 +1,10 @@
 module.exports = {
   username: "postgres",
-  password: "5432",
+  password: "a",
   database: "mundial",
   psql: {
     port: 5432,
-    host: "127.0.0.1",
+    host: "104.198.175.96",
   },
-  url: "postgresql://postgres:a@localhost:5432/mundial"
+  url: "postgresql://postgres:a@104.198.175.96:5432/mundial"
 };
