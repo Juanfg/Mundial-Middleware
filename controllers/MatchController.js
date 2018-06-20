@@ -63,6 +63,7 @@ module.exports = function(app) {
                         await User.findById(match.bets[i].user_id)
                             .then(async user => {
                                 match.bets[i].user_id = user.name;
+                                match.bets[i].active = user.active;
                             })
                             .catch(err => {
                                 res.json(err);
