@@ -52,13 +52,22 @@ module.exports = function(app) {
         view: function(req, res) {
             let matchId = req.params.matchId;
             Match.findById(req.params.matchId, { include: [{ all: true }] })
-                .then(match => {
+                .then(async match => {
                     if (!match) {
                         return res.status(404).json({
                             message: 'Match Not Found'
                         });
                     }
 
+                    for (let i = 0; i < match.bets.length; i++) {
+                        await User.findById(match.bets[i].user_id)
+                            .then(async user => {
+                                match.bets[i].user_id = user.name;
+                            })
+                            .catch(err => {
+                                res.json(err);
+                            })
+                    }
                     res.status(200).json(match);
                 })
                 .catch(err => {
