@@ -48,6 +48,10 @@ module.exports = function(app) {
         .put(passport.authenticate('jwt', { session: false }), matchCtrl.deactivateAll);
     app.route('/api/matchesActivateAll')
         .put(passport.authenticate('jwt', { session: false }), matchCtrl.activateAll);
+    app.route('/api/matchesDeactivateRange')
+        .put(passport.authenticate('jwt', { session: false }), matchCtrl.deactivateRange);
+    app.route('/api/matchesActivateRange')
+        .put(passport.authenticate('jwt', { session: false }), matchCtrl.activateRange);
 
     // Groups routes
     app.route('/api/groups')

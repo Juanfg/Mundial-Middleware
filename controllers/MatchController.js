@@ -219,6 +219,46 @@ module.exports = function(app) {
                 .catch(err => {
                     res.status(400).json(err);
                 })
+        },
+
+        deactivateRange: async function(req, res) {
+            let start = parseInt(req.body.start);
+            let end = parseInt(req.body.end);
+
+            for (let i = start; i <= end; i++) {
+                await Match.findById(i)
+                    .then(async match => {
+                        await match.update({
+                            active: false
+                        });
+                    })
+                    .catch(err => {
+                        res.status(400).json(err);
+                    });
+            }
+
+            res.status(200).json('Matches are not active now');            
+        },
+
+        activateRange: async function(req, res) {
+            let start = parseInt(req.body.start);
+            let end = parseInt(req.body.end);
+
+            for (let i = start; i <= end; i++) {
+                await Match.findById(i)
+                    .then(async match => {
+                        if (match) {
+                            await match.update({
+                                active: true
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        res.status(400).json(err);
+                    });
+            }
+
+            res.status(200).json('Matches are active now');
         }
 
     }
